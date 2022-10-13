@@ -1,0 +1,105 @@
+//studcontroller
+<?php
+
+namespace App\Http\Controllers;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Http\Request;
+
+class StudController extends Controller
+{
+    function loadview(){
+        $data=DB::table('posts')->get();
+        return view('student',['Data'=>$data]);
+    }
+
+    function InsertData(Request $req){
+        if($req->operation=='Insert'){
+            DB::table('posts')->insert([
+                'title'=>$req->txttitle,
+                'Body'=>$req->txtBody
+            ]);
+            echo "<script>alert('Inserted'); window.location='urlloadview'</script>";
+        }
+
+        if($req->operation=='Update'){
+            DB::table('posts')->where('id',$req->txtid)->update([
+                'title'=>$req->txttitle,
+                'Body'=>$req->txtBody
+            ]);
+            echo "<script>alert('Inserted'); window.location='urlloadview'</script>";
+        }
+        return redirect('urlloadview');
+    }
+     function EditData($id){
+        $record=DB::table('posts')->where('id',$id)->get();
+        $r=$record[0];
+        $data=DB::table('posts')->get();
+        return view('student',['Data'=>$data,'Record'=>$r]);
+     }
+
+     function DeleteData($id){
+        DB::table('posts')->where('id',$id)->delete();
+        return redirect('urlloadview');
+     }
+}
+//stud.blade
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form action="{{URL::to('urlinsert')}}" method="POST">
+        @csrf
+
+        <input type="text" name="txttitle" value="@isset($Record){{$Record->title}}@endisset"/>
+        <input type="text" name="txtBody" value="@isset($Record){{$Record->Body}}@endisset"/>
+        <input type="submit" name="operation" value="Insert">
+
+        <table>
+            <tr>
+                <td>title</td>
+                <td>Body</td>
+            </tr>
+            
+                @foreach ($Data as $d)
+                    <tr>
+                        <td>{{$d->title}}</td>
+                        <td>{{$d->Body}}</td>
+                    </tr>
+                @endforeach
+       
+        </table>
+    </form>
+</body>
+</html>
+//web.php
+<?php
+
+use App\Http\Controllers\StudController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+Route::get('urlloadview',[StudController::class,'loadview']);
+Route::post('urlinsert',[StudController::class,'InsertData']);
+Route::get('urlupdate/{id}',[StudController::class,'EditData']);
+Route::get('urldelete/{id}',[StudController::class,'DeleteData']);
